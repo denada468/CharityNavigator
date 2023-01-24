@@ -12,7 +12,6 @@ function Datagrids() {
     const apiKey = "11d6cc3af01966339329d5411fb30376"
     const apiLink = `https://api.data.charitynavigator.org/v2/Organizations?app_id=${apiId}&app_key=${apiKey}&pageSize=1000`
     const [dataPoint, setData] = useState([]);
-    const [d, setD] = useState([])
     
     useEffect(() => {
         getCharityData()
