@@ -8,33 +8,46 @@ Address (Country, state, city, postal)
 */
 
 function Datagrids() {
+    const checkLocalStorage = false
     const apiId = "20472357"
     const apiKey = "11d6cc3af01966339329d5411fb30376"
     const apiLink = `https://api.data.charitynavigator.org/v2/Organizations?app_id=${apiId}&app_key=${apiKey}&pageSize=1000`
     const [dataPoint, setData] = useState([]);
     
-    useEffect(() => {
-        getCharityData()
-    },[])
     const getCharityData = async() => {
-        const check = localStorage.getItem('data')
-        if (check) {
-            setData(JSON.parse(check))
-        } else {
-            const api = await fetch(apiLink)
-            const dataP = await api.json()
-            localStorage.setItem('data', JSON.stringify(dataP))
+        var api
+        var dataP 
+
+        if (checkLocalStorage){
+            const check = localStorage.getItem('data')
+
+            if (check) {
+                setData(JSON.parse(check))
+            } else {
+                api = await fetch(apiLink)
+                dataP = await api.json()
+                localStorage.setItem('data', JSON.stringify(dataP))
+                setData(dataP)
+            }
+        }
+        else {
+            api = await fetch(apiLink)
+            dataP = await api.json()
             setData(dataP)
         }
     }
+    useEffect(() => {
+        getCharityData()
+    },[])
+
     console.log(dataPoint)
     // ein, 
     const cols = [
-        {field: 'col1', headerName: 'Charity Name', width: 300},
-        {field: 'col2', headerName: 'Total Revenue', width: 150},
-        {field:'col3', headerName: 'Country', width: 150},
-        {field:'col4', headerName: "State", width: 150},
-        {field:'col5', headerName: "Zip", width: 150},
+        {field: 'name', headerName: 'Charity Name', width: 500},
+        {field: 'revenue', headerName: 'Total Revenue', width: 150},
+        {field:'city', headerName: 'City', width: 150},
+        {field:'state', headerName: "State", width: 150},
+        {field:'postalcode', headerName: "Zip", width: 150},
     ]
 
     const checkState = (state) => {
@@ -50,11 +63,12 @@ function Datagrids() {
     }
 
     const filterRows = dataPoint.filter((val) => {
-        const state = val.donationAddress?.stateOrProvince
-        if (checkState(state)) 
-        {
-            return val
-        }
+        //const state = val.donationAddress?.stateOrProvince
+        return val
+        // if (checkState(state)) 
+        // {
+        //     return val
+        // }
     })
 
 
@@ -78,27 +92,33 @@ function Datagrids() {
     // console.log(getNewDetails)
     
     const rows = filterRows.map((val, index) => {
-        const name = val?.charityName
+        const name = val?.charityName.toUpperCase()
         const ein = val?.ein
-        const state = val.donationAddress?.stateOrProvince
-        const city = val.donationAddress?.city
-        const postal = val.donationAddress?.postalCode
+        const state = val.donationAddress?.stateOrProvince.toUpperCase()
+        const city = val.donationAddress?.city.toUpperCase()
+        const postal = val.donationAddress?.postalCode.toUpperCase()
         return (
             {
                 id: index, 
-                col1: name,
-                col2: 0,
-                col3: state,
-                col4: city,
-                col5: postal
+                name: name,
+                revenue: 0,
+                state: state,
+                city: city,
+                postalcode: postal
             })
 
     })
 
-
     return (
         <div style={{ height: '1000px', width: '100%' }}>
-            <DataGrid rows={rows} columns={cols}/>
+            <DataGrid 
+                rows={rows} columns={cols} 
+                initialState={{
+                    sorting: {
+                        sortModel: [{ field: 'name', sort: 'asc' }],
+                    },
+                }}
+            />
         </div>
     )
 }
